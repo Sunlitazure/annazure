@@ -1,0 +1,24 @@
+
+self.generation = [genome1, genome2, ...]
+	genome = {'nodes':nodes, 'connections':connections, 'nodeValue':nodeValue}
+		nodes = [[geneId, nodeType], [], [], ...]
+			nodeTyp: 0=input, 1=bias, 2=hidden, 3=out
+			nodes order is important
+		connections = [[inNode, outNode, weight, innovation#, enabled], [], [], ...]
+			connections order not important
+			inNode, outNode = node geneID
+		nodeValue = [node1OutVal, node2OutVal, ..., biasNodeOut = 1, ..., nodeNOutVal]
+		
+self.speciesList = [[spec1Genome1Index, spec1Genome2Index,...], [spec2Genome1Index, spec2Genome2Index,...], ...]
+
+global variables:
+generation
+inputNum
+outputNum
+geneIdCounter
+innovNumCounter
+generationInnovs
+genSize
+speciesList
+specLifeCounter
+generationCounter
