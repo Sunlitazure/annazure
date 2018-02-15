@@ -17,7 +17,7 @@ testAnswers = [[0],[1],[1],[0]]
 
 
 sum = 0
-tests =20
+tests = 2
 for i in range(tests):
 	network = neatnet.NeatNet(2,1)
 	winner, winnerIndex, iterations, fittness = network.evolveNet(testData, testAnswers, 1)

@@ -7,9 +7,6 @@ from copy import deepcopy
 #	find equations to replace every constant
 #	allow every mutation instead of one at a time (add one for enable/disable)
 
-
-
-
 class NeatNet:
 
 	def __init__ (self, inputNum, outputNum):
@@ -69,7 +66,7 @@ class NeatNet:
 				'nodeValue':nodeValue})
 
 
-	def run (self, inputs, genMembNum):
+	def run (self, inputs, network):
 		if len(inputs) != self.inputNum:
 			print("network needs " + repr(self.inputNum) + " inputs")
 			exit(0)
@@ -85,19 +82,19 @@ class NeatNet:
 				inputs[index] = 0
 			
 		i=0
-		for index,item in enumerate(self.generation[genMembNum]['nodes']):
+		for index,item in enumerate(network['nodes']):
 			if item[1] == 0:
-				self.generation[genMembNum]['nodeValue'][index] = inputs[i]
+				network['nodeValue'][index] = inputs[i]
 				i += 1
 
-		nodeSequence = [[i[0]] for i in self.generation[genMembNum]['nodes']]
+		nodeSequence = [[i[0]] for i in network['nodes']]
 		#nodes in same order and index as self.nodes and self.nodeValue
 
-		for i in range(len(self.generation[genMembNum]['connections'])): #put each connection input&weight into nodeSequence array
-			if self.generation[genMembNum]['connections'][i][4]: #check if connection enabled
-				inputNode = self.generation[genMembNum]['connections'][i][0]
-				outputNode = self.generation[genMembNum]['connections'][i][1]
-				weight = self.generation[genMembNum]['connections'][i][2]
+		for i in range(len(network['connections'])): #put each connection input&weight into nodeSequence array
+			if network['connections'][i][4]: #check if connection enabled
+				inputNode = network['connections'][i][0]
+				outputNode = network['connections'][i][1]
+				weight = network['connections'][i][2]
 
 				nodeIndex = 0
 				for index,item in enumerate(nodeSequence):
@@ -114,30 +111,30 @@ class NeatNet:
 				sumNodeValue = 0
 				for connection in node[1:]: #loops through every connection found on a node, calc node val
 
-					for index2,item2 in enumerate(self.generation[genMembNum]['nodes']): #find input node index to get output value from nodeValue
+					for index2,item2 in enumerate(network['nodes']): #find input node index to get output value from nodeValue
 						if item2[0] == connection[0]:
-							sumNodeValue += self.generation[genMembNum]['nodeValue'][index2] * connection[1]
+							sumNodeValue += network['nodeValue'][index2] * connection[1]
 
 				sumNodeValue = 1 / (1 + math.exp(-4.9*sumNodeValue)) # activation function, squishes output to 0-1, called a sigmoid transfer function (modified with 4.9)
-				if self.generation[genMembNum]['nodes'][index][1] == 3:
+				if network['nodes'][index][1] == 3:
 					answer.append(sumNodeValue)
 				else:
-					self.generation[genMembNum]['nodeValue'][index] = sumNodeValue
+					network['nodeValue'][index] = sumNodeValue
 
 		answerIndex = 0
-		for index, item in enumerate(self.generation[genMembNum]['nodes']):
+		for index, item in enumerate(network['nodes']):
 			#writes output nodes results to nodeValue last to ensure there's no recursion on outputs
 			if item[1] == 3:
-				self.generation[genMembNum]['nodeValue'][index] = answer[answerIndex]
+				network['nodeValue'][index] = answer[answerIndex]
 				answerIndex +=1
 		return answer
 
 
-	def findFitness(self, inputs, solutions, genMembNum):
+	def findFitness(self, inputs, solutions, network):
 		totalDist = 0
 		roundDist = 0
 		for index, item in enumerate(inputs):
-			testAnswer = self.run(item, genMembNum)
+			testAnswer = self.run(item, network)
 
 			totalDist += abs(testAnswer[0]-solutions[index][0])
 			roundDist += abs(round(testAnswer[0])-solutions[index][0])
@@ -148,7 +145,7 @@ class NeatNet:
 			print(fitness, "testing")
 			fitness = 1
 
-		self.resetNodeValues(genMembNum)
+		self.resetNodeValues(network)
 		return fitness
 
 
@@ -388,13 +385,13 @@ class NeatNet:
 		#25% offspring from mutation w/o crossover
 
 
-	def resetNodeValues(self, genomeNum):
-		arraySize = len(self.generation[genomeNum]['nodeValue'])
-		self.generation[genomeNum]['nodeValue'] = [0 for i in range(arraySize)]
+	def resetNodeValues(self, network):
+		arraySize = len(network['nodeValue'])
+		network['nodeValue'] = [0 for i in range(arraySize)]
 
-		for index, item in enumerate(self.generation[genomeNum]['nodes']):
+		for index, item in enumerate(network['nodes']):
 			if item[1] == 1:
-				self.generation[genomeNum]['nodeValue'][index] = 1
+				network['nodeValue'][index] = 1
 				break
 
 	def speciateGeneration(self):
@@ -527,7 +524,7 @@ class NeatNet:
 			for specIndex,specItem in enumerate(self.speciesList):
 				speciesFitnessData.append([])
 				for index,item in enumerate(specItem):
-					fitness = self.findFitness(trainingData, trainingAnswers, item)
+					fitness = self.findFitness(trainingData, trainingAnswers, self.generation[item])
 					speciesFitnessData[specIndex].append([item,fitness])
 			#store new gen locally until end when self.generation and self.speciesList are over written
 
@@ -565,7 +562,7 @@ class NeatNet:
 
 			print(maxFitness, " ", self.generationCounter, len(adjustedFitnessData))
 			if maxFitness >= minFitnessNeeded:
-				fitness = self.findFitness(trainingData, trainingAnswers, fittestIndex)
+				fitness = self.findFitness(trainingData, trainingAnswers, self.generation[fittestIndex])
 				print(fitness)
 				return [self.generation[fittestIndex],fittestIndex, self.generationCounter, maxFitness]
 
